@@ -80,16 +80,27 @@ namespace Hangfire.RecurringJobAdmin.Pages
                 return;
             }
 
-            if (!StorageAssemblySingleton.GetInstance().IsValidMethod(job.Class, job.Method))
+            try
+            {
+                if (!StorageAssemblySingleton.GetInstance().IsValidMethod(job.Class, job.Method))
+                {
+                    response.Status = false;
+                    response.Message = "The Method not found";
+
+                    await context.Response.WriteAsync(JsonConvert.SerializeObject(response));
+
+                    return;
+                }
+            }
+            catch (Exception ex)
             {
                 response.Status = false;
-                response.Message = "The Method not found";
+                response.Message = ex.Message;
 
                 await context.Response.WriteAsync(JsonConvert.SerializeObject(response));
 
                 return;
             }
-
 
             var methodInfo = StorageAssemblySingleton.GetInstance().currentAssembly
                                                                                 .Where(x => x?.GetType(job.Class)?.GetMethod(job.Method) != null)
